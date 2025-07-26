@@ -9,37 +9,39 @@ Esta é uma página para criação de cadastro de agricultores, com funcionalida
 ## Funcionalidades
 
 - Cadastro de agricultor  
-- Listagem de pessoas cadastradas  
-- Edição de dados  
-- Exclusão de dados  
-
----
-
-##Features:
-- Validação de CPF ;
-- Verificação de duplicidade de CPF;
-- Delete só é liberado para perfis inativos;
+- Listagem de agricultores cadastradas  
+- Edição de dados
+- Delete só é liberado para perfis inativos   
+- Validação de CPF 
+- Verificação de duplicidade de CPF
 - Filtragem por: nome, idade e status
---
+
 ## Tecnologias Utilizadas
 
-### Front-end:
+ ` Front-end: `
 - React  
 - Tailwind CSS
 
-### Back-end:
+ ` Back-end: `
 - Next.js
 
-### Banco de Dados:
+ `Banco de Dados:`
 - MongoDB
 
 ---
 
 ## Pré-requisitos
+
 - Node.js instalado
 
 - MongoDB instalado
-´´Para visualizar os registros no banco de dados, recomenda-se utilizar o MongoDB Compass:´´
+  
+
+
+## Opcional
+
+`Para visualizar os registros no banco de dados, recomendo utilizar o MongoDB Compass:`
+
 - Inicie uma nova conexão
 - Use a URI:
 
@@ -69,7 +71,7 @@ npm install
 ```bash
 npm run dev
 ```
-5. Acesse a aplicação no navegador pelo endereço:
+5. Acesse a aplicação no navegador pelo endereço apresentado, normalmente é este:
 ```bash
 http://localhost:3000/
 
