@@ -1,115 +1,181 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import react, { useEffect, useState } from "react";
+import Form from "@/components/Form";
+import EditModal from "@/components/EditModal";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+type Agricultor = {
+  _id: string;
+  nome: string;
+  cpf: string;
+  dataNascimento: string;
+  telefone: string;
+  ativo: boolean;
+};
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+export default function ListaAgricultores() {
+  const [Agricultores, setAgricultores] = useState<Agricultor[]>([]); //lista de agricultores
+  const [modalOpen, setModalOpen] = useState(false); // controle do modal de edição
+  const [selected, setSelected] = useState(null); // agricultor selecionado para edição
+  const [sortBy, setSortBy] = useState<
+    "nome_asc" | "nome_desc" | "nasc_asc" | "nasc_desc" | ""
+  >(""); // controle de ordenação
+  const [ativoFilter, setAtivoFilter] = useState<"" | "ativo" | "inativo">(""); // controle de filtro de ativo/inativo
 
-export default function Home() {
+  useEffect(() => {
+    async function carregarDados() {
+      const res = await fetch("/api/agricultores");
+      const data = await res.json();
+      setAgricultores(data);
+    }
+
+    carregarDados();
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/agricultores")
+      .then((res) => res.json())
+      .then((data) => setAgricultores(data));
+  }, []);
+
+  const filtrarAgricultores = () => {
+    let filtrados = [...Agricultores];
+
+    if (ativoFilter === "ativo") {
+      filtrados = filtrados.filter((a) => a.ativo);
+    } else if (ativoFilter === "inativo") {
+      filtrados = filtrados.filter((a) => !a.ativo);
+    }
+
+    switch (sortBy) {
+      case "nome_asc":
+        filtrados.sort((a, b) => a.nome.localeCompare(b.nome));
+        break;
+      case "nome_desc":
+        filtrados.sort((a, b) => b.nome.localeCompare(a.nome));
+        break;
+      case "nasc_asc":
+        filtrados.sort(
+          (a, b) =>
+            new Date(a.dataNascimento).getTime() -
+            new Date(b.dataNascimento).getTime()
+        );
+        break;
+      case "nasc_desc":
+        filtrados.sort(
+          (a, b) =>
+            new Date(b.dataNascimento).getTime() -
+            new Date(a.dataNascimento).getTime()
+        );
+        break;
+    }
+
+    return filtrados;
+  };
+
+  const handleDelete = async (id: string) => {
+    await fetch(`/api/agricultores/${id}`, { method: "DELETE" });
+    setAgricultores((prev) => prev.filter((p) => p._id !== id));
+  };
+
+  const handleEdit = (agricultor) => {
+    setSelected(agricultor);
+    setModalOpen(true);
+  };
+
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20`}
-    >
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/pages/index.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="flex text-center justify-center  min-h-screen">
+      <div className="p-4 ">
+        <div className="flex justify-center">
+          <Form
+            onSuccess={() => {
+              fetch("/api/agricultores")
+                .then((res) => res.json())
+                .then((data) => setAgricultores(data));
+            }}
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <h1 className="text-xl font-bold my-4">LIsta de Agricultores</h1>
+
+        <div className="flex gap-4 mb-4 flex-wrap">
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="border p-1 rounded"
+          >
+            <option value="">Ordenar por...</option>
+            <option value="nome_asc">Nome A-Z</option>
+            <option value="nome_desc">Nome Z-A</option>
+            <option value="nasc_asc">Nascimento ↑</option>
+            <option value="nasc_desc">Nascimento ↓</option>
+          </select>
+
+          <select
+            value={ativoFilter}
+            onChange={(e) => setAtivoFilter(e.target.value as any)}
+            className="border p-1 rounded"
+          >
+            <option value="">Todos</option>
+            <option value="ativo">Apenas Ativos</option>
+            <option value="inativo">Apenas Inativos</option>
+          </select>
+        </div>
+
+        <table className=" border min-w-[768px] max-w-[1024px] mx-auto">
+          <thead>
+            <tr className="bg-green-50">
+              <th className="p-2 border">Nome</th>
+              <th className="p-2 border">CPF</th>
+              <th className="p-2 border">Nascimento</th>
+              <th className="p-2 border">Telefone</th>
+              <th className="p-2 border">Ativo</th>
+              <th className="p-2 border">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtrarAgricultores().map((p) => (
+              <tr key={p._id}>
+                <td className="p-2 border">{p.nome}</td>
+                <td className="p-2 border">{p.cpf}</td>
+                <td className="p-2 border">
+                  {new Date(p.dataNascimento).toLocaleDateString()}
+                </td>
+                <td className="p-2 border">{p.telefone}</td>
+                <td className="p-2 border">{p.ativo ? "Sim" : "Não"}</td>
+                <td className="p-2 border space-x-2">
+                  <button
+                    onClick={() => handleEdit(p)}
+                    className="bg-blue-500 text-white px-2 py-1 rounded"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => handleDelete(p._id)}
+                    className="bg-red-500 text-white px-2 py-1 rounded disabled:opacity-50"
+                    disabled={p.ativo}
+                    title={p.ativo ? "Desative antes de excluir" : ""}
+                  >
+                    Deletar
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <EditModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          agricultor={selected}
+          onSave={async (updated) => {
+            await fetch(`/api/agricultores/${updated._id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(updated),
+            });
+            const res = await fetch("/api/agricultores");
+            const data = await res.json();
+            setAgricultores(data);
+          }}
+        />
+      </div>
     </div>
   );
 }
