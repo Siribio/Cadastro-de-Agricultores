@@ -1,5 +1,5 @@
 import { connectToDatabase } from "../../../lib/db";
-import { Agricultor } from "../../..//models/Agricultores";
+import { Agricultor } from "../../../models/Agricultor";
 import { validaCPF } from "../../../utils/validaCPF";
 
 export default async function handler(req, res) {
@@ -10,12 +10,18 @@ export default async function handler(req, res) {
       const agricultores = await Agricultor.find({});
       res.status(200).json(agricultores);
     } catch (error) {
-      res.status(500).json({ error: "Falha ao encontrar Agrucultores" });
+      res.status(500).json({ error: "Falha ao encontrar Agricultores" });
     }
   } else if (req.method === "POST") {
     const {cpf} = req.body;
     if (!validaCPF(cpf)) {
       return res.status(400).json({ error: "CPF inválido" });
+    }
+    const jaExiste = await Agricultor.findOne({ cpf });
+  if (jaExiste) {
+    return res.status(409).json({ error: "CPF já cadastrado" });
+  }
+
     try {
       const newAgricultor = new Agricultor(req.body);
       await newAgricultor.save();
@@ -27,4 +33,6 @@ export default async function handler(req, res) {
     res.setHeader("Allow", ["GET", "POST"]);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
+
+
 }
